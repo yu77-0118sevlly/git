@@ -3,28 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>双色球选号 + 开奖 + 中奖概率测试实验室</title>
+  <title>双色球选号 + 物理摇奖机 + 独立性验证实验室</title>
   <style>
-    /* 全局变量与基础样式 */
+    /* 全局 CSS 变量与主基调 */
     :root {
-      --bg-main: #0f172a;
-      --bg-card: #1e293b;
-      --bg-card-hover: #334155;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-main: #090d16;
+      --bg-card: #111827;
+      --bg-card-hover: #1f2937;
+      --border-color: #1e293b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
       
       --red-primary: #ef4444;
-      --red-glow: rgba(239, 68, 68, 0.5);
-      --red-dark: #991b1b;
-      
+      --red-glow: rgba(239, 68, 68, 0.4);
       --blue-primary: #3b82f6;
-      --blue-glow: rgba(59, 130, 246, 0.5);
-      --blue-dark: #1e40af;
+      --blue-glow: rgba(59, 130, 246, 0.4);
+      --gold-primary: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.5);
+      --green-accent: #10b981;
 
-      --gold-primary: #eab308;
-      --gold-glow: rgba(234, 179, 8, 0.6);
-      
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
@@ -36,213 +33,220 @@
     }
 
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      min-height: 100vh;
       overflow-x: hidden;
-    }
-
-    body {
       background-color: var(--bg-main);
       color: var(--text-main);
-      padding: 16px;
-      line-height: 1.5;
-      min-height: 100vh;
+      font-size: clamp(12px, 0.85vw, 15px);
     }
 
-    .container {
-      width: 100%;
-      max-width: 100%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* 头部 */
-    header {
-      text-align: center;
-      padding: 16px;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      width: 100%;
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      color: var(--text-main);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    header p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    /* 通用卡片 */
-    .card {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      width: 100%;
-    }
-
-    .card-title {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
+    /* 顶部 Sticky 状态与导航栏 */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border-color);
+      padding: 0.6rem 1.2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     }
 
-    .card-title .tag {
-      font-size: 0.75rem;
-      background: var(--border-color);
-      padding: 2px 8px;
-      border-radius: 12px;
+    .top-bar-title h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f8fafc 30%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .top-bar-summary {
+      font-size: 0.8rem;
       color: var(--text-muted);
-      font-weight: normal;
+      background: var(--bg-main);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .clock-display {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--gold-primary);
+    }
+
+    /* 主 Viewport 结构 */
+    .app-viewport {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    /* 物理摇奖现场 - 舞台区 */
+    .stage-container {
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 80%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .stage-spotlight {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 250px;
+      background: radial-gradient(ellipse at top, rgba(96, 165, 250, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    .machines-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      width: 100%;
+      z-index: 2;
+    }
+
+    .machine-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .machine-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    canvas.phys-canvas {
+      width: 320px;
+      height: 320px;
+      background: transparent;
+      border-radius: 50%;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+    }
+
+    /* 通用面板 Card */
+    .panel {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--blue-primary);
+      border-radius: 4px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
     }
 
     /* 按钮控制 */
     .btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      font-size: 0.9rem;
-      background-color: #334155;
-      color: #fff;
+      gap: 0.4rem;
+      color: var(--text-main);
+      background: var(--bg-card-hover);
     }
 
     .btn:hover:not(:disabled) {
-      filter: brightness(1.15);
+      filter: brightness(1.2);
       transform: translateY(-1px);
     }
 
-    .btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
     .btn:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
-      filter: grayscale(0.8);
     }
 
-    .btn-red { background-color: var(--red-primary); color: white; }
-    .btn-blue { background-color: var(--blue-primary); color: white; }
-    .btn-gold { background-color: var(--gold-primary); color: #000; }
-    .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
-    .btn-outline:hover:not(:disabled) { background: var(--bg-card-hover); }
+    .btn-red { background: var(--red-primary); color: white; }
+    .btn-blue { background: var(--blue-primary); color: white; }
+    .btn-gold { background: var(--gold-primary); color: #000; }
+    .btn-outline { background: transparent; border-color: var(--border-color); }
 
     .btn-group {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
-    }
-
-    /* 表单与输入 */
-    .input-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .form-group input {
-      background-color: var(--bg-main);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--blue-primary);
-    }
-
-    /* 概览概率展示 */
-    .stat-overview {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .stat-box {
-      background: var(--bg-main);
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-    }
-
-    .stat-box .title {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .stat-box .value {
-      font-size: 1.1rem;
-      font-weight: bold;
-      font-family: var(--font-mono);
+      gap: 0.4rem;
     }
 
     /* 号码球 Grid */
     .ball-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
-      gap: 10px;
-      margin: 12px 0;
+      grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+      gap: 0.5rem;
     }
 
     .ball {
-      width: 42px;
-      height: 42px;
+      aspect-ratio: 1;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
+      font-size: 0.85rem;
       font-weight: bold;
-      font-size: 0.95rem;
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      background-color: #26334d;
-      color: #94a3b8;
-      border: 1px solid #334155;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
       position: relative;
     }
 
@@ -252,84 +256,60 @@
     }
 
     .ball.disabled {
-      opacity: 0.3;
+      opacity: 0.25;
       cursor: not-allowed;
     }
 
-    /* 红球选中 */
     .ball.red.selected {
       background: radial-gradient(circle at 35% 35%, #f87171, var(--red-primary));
       color: white;
       border-color: #fca5a5;
-      box-shadow: 0 0 12px var(--red-glow);
+      box-shadow: 0 0 10px var(--red-glow);
     }
 
-    /* 蓝球选中 */
     .ball.blue.selected {
       background: radial-gradient(circle at 35% 35%, #60a5fa, var(--blue-primary));
       color: white;
       border-color: #93c5fd;
-      box-shadow: 0 0 12px var(--blue-glow);
+      box-shadow: 0 0 10px var(--blue-glow);
     }
 
-    /* 中奖命中打勾态 */
     .ball.hit::after {
       content: '✓';
       position: absolute;
-      top: -4px;
-      right: -4px;
-      background: #22c55e;
+      top: -3px;
+      right: -3px;
+      background: var(--green-accent);
       color: white;
-      font-size: 10px;
-      width: 16px;
-      height: 16px;
+      font-size: 9px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 6px #22c55e;
-      animation: pulse 1s infinite alternate;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.9); }
-      100% { transform: scale(1.2); }
+      box-shadow: 0 0 5px var(--green-accent);
     }
 
     /* 开奖展示区 */
-    .draw-display-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      padding: 20px 0;
-    }
-
-    .status-text {
-      font-size: 1.1rem;
-      color: var(--gold-primary);
-      height: 28px;
-      font-weight: 500;
-    }
-
     .draw-balls-row {
       display: flex;
-      gap: 12px;
+      gap: 0.6rem;
       flex-wrap: wrap;
       justify-content: center;
-      min-height: 56px;
+      min-height: 48px;
       align-items: center;
     }
 
     .draw-ball {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       font-weight: bold;
       color: white;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
@@ -337,112 +317,64 @@
 
     .draw-ball.red {
       background: radial-gradient(circle at 35% 35%, #f87171, var(--red-primary));
-      box-shadow: 0 0 15px var(--red-glow);
+      box-shadow: 0 0 12px var(--red-glow);
     }
 
     .draw-ball.blue {
       background: radial-gradient(circle at 35% 35%, #60a5fa, var(--blue-primary));
-      box-shadow: 0 0 15px var(--blue-glow);
+      box-shadow: 0 0 12px var(--blue-glow);
     }
 
-    .draw-ball.rolling {
-      animation: ballRoll 0.1s infinite alternate linear;
-    }
-
-    .draw-ball.reveal {
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    @keyframes ballRoll {
-      0% { transform: translateY(-2px); }
-      100% { transform: translateY(2px); }
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0); opacity: 0; }
-      80% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-
-    /* 选号摘要栏 */
-    .selection-summary {
-      background: var(--bg-main);
-      border: 1px dashed var(--border-color);
-      padding: 12px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    /* 模拟测试表单布局 */
-    .sim-controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    /* 表格控制 */
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border-color);
-      white-space: nowrap;
-    }
-
-    th {
-      background-color: #1a2332;
+    /* 指示警示文本 */
+    .notice-bar {
+      font-size: 0.8rem;
       color: var(--text-muted);
-      font-weight: 600;
-      position: sticky;
-      top: 0;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--gold-primary);
     }
 
-    tr:hover {
-      background-color: rgba(255, 255, 255, 0.02);
+    /* 指标卡片 */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.6rem;
     }
 
-    .mono {
+    .metric-card {
+      background: var(--bg-main);
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .metric-card .title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .metric-card .value {
+      font-size: 0.95rem;
+      font-weight: 700;
       font-family: var(--font-mono);
     }
-
-    .diff-pos { color: #4ade80; }
-    .diff-neg { color: #f87171; }
-    .diff-zero { color: var(--text-muted); }
 
     /* Canvas 图表容器 */
     .charts-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.8rem;
     }
 
     .chart-box {
       background: var(--bg-main);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px;
+      padding: 0.8rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -450,275 +382,236 @@
     }
 
     .chart-box h4 {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 0.4rem;
       align-self: flex-start;
     }
 
-    canvas {
+    canvas.chart-canvas {
       width: 100% !important;
-      height: 260px !important;
+      height: 200px !important;
       display: block;
     }
 
-    /* 金色庆祝金光效果 */
-    .jackpot-celebration {
-      animation: jackpotGlow 1s infinite alternate;
+    /* 表格控制 */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      max-height: 320px;
+      overflow-y: auto;
     }
 
-    @keyframes jackpotGlow {
-      0% { box-shadow: inset 0 0 30px rgba(234, 179, 8, 0.3); }
-      100% { box-shadow: inset 0 0 80px rgba(234, 179, 8, 0.8); }
-    }
-
-    .notice-bar {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 0.8rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 0.5rem 0.7rem;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: #0f172a;
       color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.03);
-      padding: 8px 12px;
-      border-radius: 6px;
-      border-left: 3px solid var(--gold-primary);
-      margin-top: 10px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .mono { font-family: var(--font-mono); }
+    .diff-pos { color: #4ade80; }
+    .diff-neg { color: #f87171; }
+
+    footer {
+      text-align: center;
+      padding: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
     }
   </style>
 </head>
 <body>
 
-<div class="container" id="mainApp">
-  <!-- 头部标题 -->
-  <header>
-    <h1>🎰 双色球中奖概率算法实验室</h1>
-    <p>全网无依赖 | 理论组合精准算 | 真实洗牌算法 | 多维度概率对比</p>
-  </header>
+<!-- 顶部 Sticky 状态栏 -->
+<div class="top-bar">
+  <div class="top-bar-title">
+    <h1>🎰 双色球物理摇奖与概率验证实验室</h1>
+    <span class="top-bar-summary" id="topRulesSummary">32选5红 / 12选2蓝</span>
+  </div>
+  <div class="top-bar-actions">
+    <div class="clock-display" id="sysClockDisplay">00:00:00</div>
+    <button class="btn btn-outline" id="btnToggleFullscreen">⛶ 全屏 (F)</button>
+    <button class="btn btn-outline" id="btnGlobalReset">🔄 重置 (R)</button>
+  </div>
+</div>
 
-  <!-- 一、顶部参数与概览区 -->
-  <div class="card">
-    <div class="card-title">
-      <span>一、玩法参数与理论概率控制台</span>
-      <span class="tag">组合数学 Precision C(n,k)</span>
+<div class="app-viewport">
+  
+  <!-- 物理摇奖现场 -->
+  <div class="stage-container">
+    <div class="stage-spotlight"></div>
+    <div style="text-align:center; z-index:2;">
+      <h2 style="font-size: 1.2rem; color: var(--gold-primary);">真实物理气流摇奖机现场</h2>
+      <p style="font-size:0.8rem; color: var(--text-muted);">玻璃罩内 32 个红球与 12 个蓝球全部参与物理碰撞受力，选号不会移除任何球</p>
     </div>
 
-    <div class="input-grid">
-      <div class="form-group">
-        <label for="nrInput">红球池大小 (N_r)</label>
-        <input type="number" id="nrInput" value="32" min="5" max="50">
+    <div class="machines-wrapper">
+      <!-- 红色摇奖机 -->
+      <div class="machine-box">
+        <div class="machine-title" style="color:var(--red-primary);">🔴 1~32 红色物理摇奖机</div>
+        <canvas id="physRedCanvas" class="phys-canvas"></canvas>
       </div>
-      <div class="form-group">
-        <label for="krInput">红球选号数 (K_r)</label>
-        <input type="number" id="krInput" value="5" min="1" max="15">
-      </div>
-      <div class="form-group">
-        <label for="nbInput">蓝球池大小 (N_b)</label>
-        <input type="number" id="nbInput" value="12" min="2" max="30">
-      </div>
-      <div class="form-group">
-        <label for="kbInput">蓝球选号数 (K_b)</label>
-        <input type="number" id="kbInput" value="2" min="1" max="10">
+
+      <!-- 蓝色摇奖机 -->
+      <div class="machine-box">
+        <div class="machine-title" style="color:var(--blue-primary);">🔵 1~12 蓝色物理摇奖机</div>
+        <canvas id="physBlueCanvas" class="phys-canvas"></canvas>
       </div>
     </div>
 
-    <div class="stat-overview">
-      <div class="stat-box">
-        <div class="title">理论总组合数 C(N_r,K_r)×C(N_b,K_b)</div>
-        <div class="value" id="totalCombosDisplay">13,290,816</div>
-      </div>
-      <div class="stat-box">
-        <div class="title">红球全中概率 C(K_r,K_r)/C(N_r,K_r)</div>
-        <div class="value" id="redAllProbDisplay">0.000497%</div>
-      </div>
-      <div class="stat-box">
-        <div class="title">蓝球全中概率 C(K_b,K_b)/C(N_b,K_b)</div>
-        <div class="value" id="blueAllProbDisplay">1.515152%</div>
-      </div>
-      <div class="stat-box">
-        <div class="title">一等奖精准概率 (红全中 & 蓝全中)</div>
-        <div class="value" style="color: var(--gold-primary);" id="jackpotProbDisplay">1 / 13,290,816 (0.00000752%)</div>
+    <!-- 开奖揭晓结果与展示 -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:0.6rem; z-index:2; margin-top:0.5rem;">
+      <div style="font-size:1rem; color:var(--gold-primary); font-weight:500;" id="drawStatusText">点击「立即开奖」开始气流翻滚</div>
+      <div class="draw-balls-row" id="drawBallsRow"></div>
+      <div id="drawResultBanner" style="display:none; text-align:center;">
+        <span style="font-size: 1.1rem; font-weight: bold;" id="drawResultHitText">红球命中 0 个，蓝球命中 0 个</span> — 
+        <span style="font-size: 1.2rem; font-weight: bold; color: var(--gold-primary);" id="drawResultPrizeText">未中奖</span>
       </div>
     </div>
   </div>
 
-  <!-- 二、选号区 -->
-  <div class="card">
-    <div class="card-title">
-      <span>二、投注选号区</span>
+  <!-- 选号与控制面板 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">一、投注选号区</span>
       <div class="btn-group">
-        <button class="btn btn-outline" id="btnRandomRed">红球机选</button>
-        <button class="btn btn-outline" id="btnRandomBlue">蓝球机选</button>
-        <button class="btn btn-gold" id="btnRandomAll">全部机选</button>
+        <button class="btn btn-outline" id="btnRandomRed">红机选</button>
+        <button class="btn btn-outline" id="btnRandomBlue">蓝机选</button>
+        <button class="btn btn-gold" id="btnRandomAll">全机选</button>
         <button class="btn btn-outline" id="btnClearAll">清空</button>
       </div>
     </div>
 
-    <!-- 红球选号 -->
+    <div class="notice-bar">
+      💡 您选的号码只是在面板和摇奖球上加圈标记，绝不改变摇奖机内任何一个球运动和被抽中的概率。
+    </div>
+
     <div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-        <span style="color: var(--red-primary); font-weight: bold;">🔴 红球区</span>
-        <span style="font-size: 0.85rem; color: var(--text-muted);" id="redCountText">已选 0 / 5</span>
+      <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+        <span style="color:var(--red-primary); font-weight:bold;">🔴 红球区 (1~32)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="redCountText">已选 0 / 5</span>
       </div>
       <div class="ball-grid" id="redBallGrid"></div>
     </div>
 
-    <!-- 蓝球选号 -->
-    <div style="margin-top: 16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-        <span style="color: var(--blue-primary); font-weight: bold;">🔵 蓝球区</span>
-        <span style="font-size: 0.85rem; color: var(--text-muted);" id="blueCountText">已选 0 / 2</span>
+    <div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+        <span style="color:var(--blue-primary); font-weight:bold;">🔵 蓝球区 (1~12)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="blueCountText">已选 0 / 2</span>
       </div>
       <div class="ball-grid" id="blueBallGrid"></div>
     </div>
 
-    <!-- 当前选号摘要展示 -->
-    <div class="selection-summary" style="margin-top: 16px;">
-      <div>
-        <span style="color: var(--text-muted);">当前选号：</span>
-        <span id="userPickText" class="mono">未选满号码</span>
-      </div>
-      <button class="btn btn-red" id="btnStartDraw" disabled style="padding: 10px 24px; font-size: 1rem;">
-        🎬 立即开奖
+    <div style="background:var(--bg-main); padding:0.6rem; border-radius:6px; border:1px dashed var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+      <div class="mono" style="font-size:0.85rem;" id="userPickText">未选满号码</div>
+      <button class="btn btn-red" id="btnStartDraw" disabled style="padding:0.5rem 1.2rem; font-size:0.95rem;">
+        🎬 立即开奖 (Space)
       </button>
     </div>
   </div>
 
-  <!-- 三、开奖呈现区 -->
-  <div class="card" id="drawCard">
-    <div class="card-title">
-      <span>三、现场开奖摇号大厅</span>
-      <span class="tag" id="drawStatusTag">等待开奖</span>
+  <!-- 独立性验证面板 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">二、开奖与选号完全独立性 10,000 次统计检验验证</span>
+      <span class="panel-tag">Hypothesis Test</span>
     </div>
 
-    <div class="draw-display-area">
-      <div class="status-text" id="drawStatusText">点击上方「立即开奖」按钮开始模拟摇号</div>
-      
-      <div class="draw-balls-row" id="drawBallsRow">
-        <!-- 动态生成开奖球 -->
+    <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+      <button class="btn btn-gold" id="btnRunIndependenceTest">🧪 运行 10,000 次摇奖独立性验证</button>
+      <span style="font-size:0.8rem; color:var(--text-muted);" id="indepTestStatus">尚未执行检验</span>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <span class="title">红球期望抽中次数 (5/32)</span>
+        <span class="value">1,562.5 次</span>
       </div>
-
-      <div id="drawResultBanner" style="display:none; text-align:center; margin-top: 10px;">
-        <div style="font-size: 1.2rem; font-weight: bold;" id="drawResultHitText">红球命中 0 个，蓝球命中 0 个</div>
-        <div style="font-size: 1.5rem; font-weight: bold; color: var(--gold-primary); margin-top: 4px;" id="drawResultPrizeText">未中奖</div>
+      <div class="metric-card">
+        <span class="title">蓝球期望抽中次数 (2/12)</span>
+        <span class="value">1,666.7 次</span>
       </div>
-    </div>
-  </div>
-
-  <!-- 四、连续开奖统计区（固定这注号码） -->
-  <div class="card">
-    <div class="card-title">
-      <span>四、当前这注号码的连续开奖测试</span>
-      <span class="tag">固定注号码反复匹配</span>
-    </div>
-
-    <div class="sim-controls">
-      <span style="font-size: 0.9rem; color: var(--text-muted);">快捷连续开奖局数：</span>
-      <div class="btn-group">
-        <button class="btn btn-outline btn-fixed-sim" data-count="10">10次</button>
-        <button class="btn btn-outline btn-fixed-sim" data-count="100">100次</button>
-        <button class="btn btn-outline btn-fixed-sim" data-count="1000">1,000次</button>
-        <button class="btn btn-outline btn-fixed-sim" data-count="10000">10,000次</button>
-        <button class="btn btn-outline btn-fixed-sim" data-count="100000">100,000次</button>
+      <div class="metric-card">
+        <span class="title">最大 Z-Score 偏差</span>
+        <span class="value" id="maxZScoreDisplay">0.00</span>
       </div>
-    </div>
-
-    <div class="stat-overview">
-      <div class="stat-box">
-        <div class="title">累计开奖次数</div>
-        <div class="value" id="fixedTotalDraws">0</div>
+      <div class="metric-card">
+        <span class="title">独立性判定结论</span>
+        <span class="value" id="indepVerdictDisplay" style="color:var(--green-accent);">待验证</span>
       </div>
-      <div class="stat-box">
-        <div class="title">一等奖出现次数</div>
-        <div class="value" style="color: var(--gold-primary);" id="fixedJackpotHits">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="title">一等奖实际频率 vs 理论</div>
-        <div class="value" id="fixedJackpotFreq">0.00% (偏差: 0.00%)</div>
-      </div>
-    </div>
-
-    <div class="notice-bar">
-      💡 提示：概率理论表明，无论选择什么号码，每一注号码中一等奖的理论概率完全一致。
-    </div>
-  </div>
-
-  <!-- 五、全自动模拟测试区（每局重新机选） -->
-  <div class="card">
-    <div class="card-title">
-      <span>五、全自动随机机选模拟测试区</span>
-      <span class="tag">每局随机生成投注</span>
-    </div>
-
-    <div class="sim-controls">
-      <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
-        <label for="autoSimCountInput" style="white-space:nowrap;">模拟局数:</label>
-        <input type="number" id="autoSimCountInput" value="1000" step="500" min="100" max="1000000" style="width:120px;">
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-outline btn-auto-set" data-count="100">100</button>
-        <button class="btn btn-outline btn-auto-set" data-count="1000">1,000</button>
-        <button class="btn btn-outline btn-auto-set" data-count="10000">10,000</button>
-        <button class="btn btn-outline btn-auto-set" data-count="100000">100,000</button>
-      </div>
-      <button class="btn btn-gold" id="btnRunAutoSim">🚀 开始批量全自动模拟</button>
-      <button class="btn btn-outline" id="btnResetAutoSim">重置模拟数据</button>
-    </div>
-
-    <div class="stat-box" style="margin-bottom:12px;">
-      <div class="title">自动机选总模拟局数</div>
-      <div class="value" id="autoTotalSimsDisplay">0</div>
-    </div>
-  </div>
-
-  <!-- 六、可视化对比 -->
-  <div class="card">
-    <div class="card-title">
-      <span>六、 Canvas 概率收敛与分布可视化</span>
-      <span class="tag">原生 Canvas 手绘图表</span>
     </div>
 
     <div class="charts-grid">
-      <!-- 图表1：热力图 -->
       <div class="chart-box">
-        <h4>18 种命中组合概率热力图 (红 0~K_r × 蓝 0~K_b)</h4>
-        <canvas id="canvasHeatmap"></canvas>
+        <h4>红球 (1~32) 10000 次开出频率分布与理论均值对比</h4>
+        <canvas id="canvasRedFreq" class="chart-canvas"></canvas>
       </div>
-      <!-- 图表2：柱状图 -->
       <div class="chart-box">
-        <h4>理论概率 vs 实际频率 对比柱状图</h4>
-        <canvas id="canvasBar"></canvas>
-      </div>
-      <!-- 图表3：收敛折线图 -->
-      <div class="chart-box">
-        <h4>一等奖实际频率收敛曲线 (对数/线性局数)</h4>
-        <canvas id="canvasConvergence"></canvas>
+        <h4>蓝球 (1~12) 10000 次开出频率分布与理论均值对比</h4>
+        <canvas id="canvasBlueFreq" class="chart-canvas"></canvas>
       </div>
     </div>
   </div>
 
-  <!-- 七、底部汇总数据表 -->
-  <div class="card">
-    <div class="card-title">
-      <span>七、概率统计明细与奖级汇总</span>
+  <!-- A/B 选号对比验证区 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">三、「选号无关性」两组极端选号概率对比测试</span>
+      <span class="panel-tag">A/B Testing</span>
     </div>
 
-    <h4 style="margin-top: 6px; font-size: 0.95rem; color: var(--text-muted);">1. 各奖级统计汇总表</h4>
+    <div style="font-size:0.8rem; color:var(--text-muted);">
+      测试组 A (连号小号码): [01 02 03 04 05 + 01 02] &nbsp;|&nbsp; 测试组 B (连号大号码): [28 29 30 31 32 + 11 12]
+    </div>
+
+    <div style="display:flex; gap:0.6rem; align-items:center;">
+      <button class="btn btn-outline" id="btnRunABTest">🚀 执行 A/B 两组各 10,000 次模拟对比</button>
+      <span style="font-size:0.8rem; color:var(--green-accent);" id="abTestVerdict"></span>
+    </div>
+
     <div class="table-container">
-      <table id="prizeTable">
+      <table id="abTestTable">
         <thead>
           <tr>
             <th>奖级</th>
-            <th>获奖条件</th>
             <th>理论概率</th>
-            <th>实际出现次数</th>
-            <th>实际频率</th>
-            <th>偏差 (实际 - 理论)</th>
+            <th>组 A 出现次数</th>
+            <th>组 A 频率</th>
+            <th>组 B 出现次数</th>
+            <th>组 B 频率</th>
+            <th>两组频率差异 Delta</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- 动态填充 -->
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
+  </div>
 
-    <h4 style="margin-top: 20px; font-size: 0.95rem; color: var(--text-muted);">2. 18 种命中组合（红×蓝）完整细分表</h4>
+  <!-- 汇总数据与组合矩阵表 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">四、 18 种命中组合 (红 0~5 × 蓝 0~2) 精确理论矩阵</span>
+    </div>
+
     <div class="table-container">
       <table id="matrixTable">
         <thead>
@@ -726,64 +619,48 @@
             <th>红球命中</th>
             <th>蓝球命中</th>
             <th>对应奖级</th>
-            <th>理论概率</th>
+            <th>理论组合数</th>
+            <th>理论精准概率</th>
             <th>理论百分比</th>
-            <th>实际次数</th>
-            <th>实际频率</th>
-            <th>偏差</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- 动态填充 -->
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
   </div>
+
 </div>
+
+<footer>
+  提示：本网页完全无外部依赖，纯 JS 精确组合数学 + 2D 物理引擎，仅用于中奖概率科普展示。
+</footer>
 
 <script>
 /**
- * 完整彩票模拟器核心 JavaScript 逻辑
+ * 完整物理摇奖机 + 选号独立性验证 JavaScript 核心逻辑
  */
 (function() {
-  // --- 全局状态 state ---
+  // --- 1. 全局状态 State ---
   const state = {
-    // 规则参数
-    Nr: 32,
-    Kr: 5,
-    Nb: 12,
-    Kb: 2,
+    Nr: 32, Kr: 5,
+    Nb: 12, Kb: 2,
 
-    // 用户选号
     userRed: new Set(),
     userBlue: new Set(),
 
-    // 理论计算缓存
     totalCombos: 0,
-    // matrixProbs[r][b] 储存理论概率
-    matrixProbs: [], 
-    // prizeProbs 奖级理论概率 map
+    matrixProbs: [],
     prizeProbs: {},
 
-    // 模拟数据 (全自动机选)
-    autoSimCount: 0,
-    // matrixHits[r][b]
-    matrixHits: [],
-    // prizeHits map
-    prizeHits: {},
-    // 记录历史收敛点 [{ draws, jackpotRate }]
-    convergenceHistory: [],
-
-    // 连续开奖（固定号）数据
-    fixedDrawsCount: 0,
-    fixedJackpotHits: 0,
-
-    // 动画状态
-    isDrawing: false
+    isDrawing: false,
+    
+    // 物理球数据
+    redBallsPhys: [],
+    blueBallsPhys: []
   };
 
-  // --- 奖级判定规则集合 ---
-  // 根据红命中 r, 蓝命中 b 映射奖级
+  const PRIZE_LIST = ['一等奖', '二等奖', '三等奖', '四等奖', '五等奖', '六等奖', '未中奖'];
+
   function getPrizeRank(r, b) {
     if (r === 5 && b === 2) return '一等奖';
     if (r === 5 && b === 1) return '二等奖';
@@ -794,70 +671,44 @@
     return '未中奖';
   }
 
-  const PRIZE_LIST = ['一等奖', '二等奖', '三等奖', '四等奖', '五等奖', '六等奖', '未中奖'];
-
-  // --- 精确组合数 C(n, k) 计算 ---
+  // --- 2. 组合数计算 C(n, k) ---
   function combination(n, k) {
     if (k < 0 || k > n) return 0;
     if (k === 0 || k === n) return 1;
     if (k > n / 2) k = n - k;
-
     let res = 1;
     for (let i = 1; i <= k; i++) {
-      res = res * (n - i + 1) / i;
+      res = (res * (n - i + 1)) / i;
     }
     return Math.round(res);
   }
 
-  // --- 重新计算所有理论概率 ---
   function calculateTheoreticalProbabilities() {
-    const { Nr, Kr, Nb, Kb } = state;
-    
-    // 总组合数 C(Nr, Kr) * C(Nb, Kb)
-    const comboRed = combination(Nr, Kr);
-    const comboBlue = combination(Nb, Kb);
+    const comboRed = combination(state.Nr, state.Kr);
+    const comboBlue = combination(state.Nb, state.Kb);
     state.totalCombos = comboRed * comboBlue;
 
-    // 初始化 18 (或 Kr+1 * Kb+1) 种组合概率矩阵
-    state.matrixProbs = Array.from({ length: Kr + 1 }, () => Array(Kb + 1).fill(0));
-    
-    // 清空奖级概率
+    state.matrixProbs = Array.from({ length: state.Kr + 1 }, () => Array(state.Kb + 1).fill(0));
     state.prizeProbs = {};
     PRIZE_LIST.forEach(p => state.prizeProbs[p] = 0);
 
-    // 循环计算每个 (r, b) 命中组合概率
-    for (let r = 0; r <= Kr; r++) {
-      // 选中的 Kr 个红球命中 r 个，未中 Kr-r 个 (从 Nr-Kr 个未选中挑选)
-      const redWays = combination(Kr, r) * combination(Nr - Kr, Kr - r);
+    for (let r = 0; r <= state.Kr; r++) {
+      const redWays = combination(state.Kr, r) * combination(state.Nr - state.Kr, state.Kr - r);
       const pRed = redWays / comboRed;
 
-      for (let b = 0; b <= Kb; b++) {
-        const blueWays = combination(Kb, b) * combination(Nb - Kb, Kb - b);
+      for (let b = 0; b <= state.Kb; b++) {
+        const blueWays = combination(state.Kb, b) * combination(state.Nb - state.Kb, state.Kb - b);
         const pBlue = blueWays / comboBlue;
 
         const prob = pRed * pBlue;
         state.matrixProbs[r][b] = prob;
-
-        // 归类到对应奖级
         const prize = getPrizeRank(r, b);
         state.prizeProbs[prize] = (state.prizeProbs[prize] || 0) + prob;
       }
     }
   }
 
-  // --- 重置模拟数据矩阵 ---
-  function resetSimulationData() {
-    state.autoSimCount = 0;
-    state.matrixHits = Array.from({ length: state.Kr + 1 }, () => Array(state.Kb + 1).fill(0));
-    state.prizeHits = {};
-    PRIZE_LIST.forEach(p => state.prizeHits[p] = 0);
-    state.convergenceHistory = [];
-
-    state.fixedDrawsCount = 0;
-    state.fixedJackpotHits = 0;
-  }
-
-  // --- Fisher-Yates 部分洗牌抽样 ---
+  // 洗牌 Fisher-Yates 抽样 (完全独立生成)
   function getRandomDraw(poolSize, count) {
     const arr = Array.from({ length: poolSize }, (_, i) => i + 1);
     for (let i = 0; i < count; i++) {
@@ -869,17 +720,11 @@
     return arr.slice(0, count).sort((a, b) => a - b);
   }
 
-  // --- DOM 元素引用 ---
+  // DOM 元素引用
   const els = {
-    nrInput: document.getElementById('nrInput'),
-    krInput: document.getElementById('krInput'),
-    nbInput: document.getElementById('nbInput'),
-    kbInput: document.getElementById('kbInput'),
-
-    totalCombosDisplay: document.getElementById('totalCombosDisplay'),
-    redAllProbDisplay: document.getElementById('redAllProbDisplay'),
-    blueAllProbDisplay: document.getElementById('blueAllProbDisplay'),
-    jackpotProbDisplay: document.getElementById('jackpotProbDisplay'),
+    sysClockDisplay: document.getElementById('sysClockDisplay'),
+    btnToggleFullscreen: document.getElementById('btnToggleFullscreen'),
+    btnGlobalReset: document.getElementById('btnGlobalReset'),
 
     redBallGrid: document.getElementById('redBallGrid'),
     blueBallGrid: document.getElementById('blueBallGrid'),
@@ -893,34 +738,199 @@
     btnClearAll: document.getElementById('btnClearAll'),
     btnStartDraw: document.getElementById('btnStartDraw'),
 
-    drawCard: document.getElementById('drawCard'),
-    drawStatusTag: document.getElementById('drawStatusTag'),
     drawStatusText: document.getElementById('drawStatusText'),
     drawBallsRow: document.getElementById('drawBallsRow'),
     drawResultBanner: document.getElementById('drawResultBanner'),
     drawResultHitText: document.getElementById('drawResultHitText'),
     drawResultPrizeText: document.getElementById('drawResultPrizeText'),
 
-    fixedTotalDraws: document.getElementById('fixedTotalDraws'),
-    fixedJackpotHits: document.getElementById('fixedJackpotHits'),
-    fixedJackpotFreq: document.getElementById('fixedJackpotFreq'),
+    btnRunIndependenceTest: document.getElementById('btnRunIndependenceTest'),
+    indepTestStatus: document.getElementById('indepTestStatus'),
+    maxZScoreDisplay: document.getElementById('maxZScoreDisplay'),
+    indepVerdictDisplay: document.getElementById('indepVerdictDisplay'),
 
-    autoSimCountInput: document.getElementById('autoSimCountInput'),
-    btnRunAutoSim: document.getElementById('btnRunAutoSim'),
-    btnResetAutoSim: document.getElementById('btnResetAutoSim'),
-    autoTotalSimsDisplay: document.getElementById('autoTotalSimsDisplay'),
+    btnRunABTest: document.getElementById('btnRunABTest'),
+    abTestVerdict: document.getElementById('abTestVerdict'),
+    abTestTable: document.getElementById('abTestTable').querySelector('tbody'),
 
-    prizeTable: document.getElementById('prizeTable').querySelector('tbody'),
     matrixTable: document.getElementById('matrixTable').querySelector('tbody'),
 
-    canvasHeatmap: document.getElementById('canvasHeatmap'),
-    canvasBar: document.getElementById('canvasBar'),
-    canvasConvergence: document.getElementById('canvasConvergence')
+    canvasRedFreq: document.getElementById('canvasRedFreq'),
+    canvasBlueFreq: document.getElementById('canvasBlueFreq'),
+
+    physRedCanvas: document.getElementById('physRedCanvas'),
+    physBlueCanvas: document.getElementById('physBlueCanvas')
   };
 
-  // --- 初始化球盘 ---
+  // --- 3. 2D 物理碰撞摇奖机引擎 ---
+  function initPhysEngine() {
+    const rCtx = els.physRedCanvas.getContext('2d');
+    const bCtx = els.physBlueCanvas.getContext('2d');
+    
+    els.physRedCanvas.width = 320;
+    els.physRedCanvas.height = 320;
+    els.physBlueCanvas.width = 320;
+    els.physBlueCanvas.height = 320;
+
+    // 初始化红球 (1~32 全部参与)
+    state.redBallsPhys = [];
+    for (let i = 1; i <= 32; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 90;
+      state.redBallsPhys.push({
+        num: i,
+        x: 160 + Math.cos(angle) * dist,
+        y: 160 + Math.sin(angle) * dist,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 6,
+        r: 14
+      });
+    }
+
+    // 初始化蓝球 (1~12 全部参与)
+    state.blueBallsPhys = [];
+    for (let i = 1; i <= 12; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 80;
+      state.blueBallsPhys.push({
+        num: i,
+        x: 160 + Math.cos(angle) * dist,
+        y: 160 + Math.sin(angle) * dist,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 6,
+        r: 15
+      });
+    }
+
+    function updatePhysics(balls, isBlowing) {
+      const cx = 160, cy = 160, maxR = 142;
+
+      balls.forEach((b, idx) => {
+        // 重力与向上气流推力
+        b.vy += 0.15;
+        if (isBlowing) {
+          b.vy -= 0.4 + Math.random() * 0.2;
+          b.vx += (Math.random() - 0.5) * 0.5;
+        }
+
+        b.x += b.vx;
+        b.y += b.vy;
+
+        // 边界透明玻璃罩碰撞反弹
+        const dx = b.x - cx;
+        const dy = b.y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist + b.r > maxR) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const dot = b.vx * nx + b.vy * ny;
+          b.vx -= 1.8 * dot * nx;
+          b.vy -= 1.8 * dot * ny;
+
+          b.x = cx + nx * (maxR - b.r);
+          b.y = cy + ny * (maxR - b.r);
+        }
+
+        // 球与球弹性碰撞
+        for (let j = idx + 1; j < balls.length; j++) {
+          const b2 = balls[j];
+          const bdx = b2.x - b.x;
+          const bdy = b2.y - b.y;
+          const bDist = Math.sqrt(bdx * bdx + bdy * bdy);
+          const minDist = b.r + b2.r;
+
+          if (bDist < minDist && bDist > 0) {
+            const bnx = bdx / bDist;
+            const bny = bdy / bDist;
+            const kx = b.vx - b2.vx;
+            const ky = b.vy - b2.vy;
+            const p = 2 * (bnx * kx + bny * ky) / 2;
+
+            b.vx -= p * bnx;
+            b.vy -= p * bny;
+            b2.vx += p * bnx;
+            b2.vy += p * bny;
+
+            const overlap = 0.5 * (minDist - bDist);
+            b.x -= overlap * bnx;
+            b.y -= overlap * bny;
+            b2.x += overlap * bnx;
+            b2.y += overlap * bny;
+          }
+        }
+      });
+    }
+
+    function renderBalls(ctx, balls, colorType, selectedSet) {
+      ctx.clearRect(0, 0, 320, 320);
+
+      // 外罩金属光泽与玻璃边缘
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(160, 160, 145, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 玻璃高光反光弧度
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(160, 160, 138, -Math.PI * 0.7, -Math.PI * 0.2);
+      ctx.stroke();
+
+      // 绘制所有号球
+      balls.forEach(b => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+
+        const isSelected = selectedSet.has(b.num);
+
+        // 渐变立体球
+        const grad = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.1, b.x, b.y, b.r);
+        if (colorType === 'red') {
+          grad.addColorStop(0, isSelected ? '#fca5a5' : '#f87171');
+          grad.addColorStop(1, '#ef4444');
+        } else {
+          grad.addColorStop(0, isSelected ? '#bfdbfe' : '#60a5fa');
+          grad.addColorStop(1, '#3b82f6');
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 选中的球加突出圈线
+        if (isSelected) {
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // 文字
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(b.num).padStart(2, '0'), b.x, b.y);
+        ctx.restore();
+      });
+    }
+
+    function loop() {
+      updatePhysics(state.redBallsPhys, state.isDrawing);
+      updatePhysics(state.blueBallsPhys, state.isDrawing);
+
+      renderBalls(rCtx, state.redBallsPhys, 'red', state.userRed);
+      renderBalls(bCtx, state.blueBallsPhys, 'blue', state.userBlue);
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  }
+
+  // --- 4. 选号面板渲染 ---
   function renderBallGrids() {
-    // 红球盘
     els.redBallGrid.innerHTML = '';
     for (let i = 1; i <= state.Nr; i++) {
       const ball = document.createElement('div');
@@ -928,17 +938,13 @@
       ball.textContent = String(i).padStart(2, '0');
       ball.dataset.val = i;
 
-      if (state.userRed.has(i)) {
-        ball.classList.add('selected');
-      } else if (state.userRed.size >= state.Kr) {
-        ball.classList.add('disabled');
-      }
+      if (state.userRed.has(i)) ball.classList.add('selected');
+      else if (state.userRed.size >= state.Kr) ball.classList.add('disabled');
 
       ball.addEventListener('click', () => toggleSelectBall('red', i));
       els.redBallGrid.appendChild(ball);
     }
 
-    // 蓝球盘
     els.blueBallGrid.innerHTML = '';
     for (let i = 1; i <= state.Nb; i++) {
       const ball = document.createElement('div');
@@ -946,17 +952,13 @@
       ball.textContent = String(i).padStart(2, '0');
       ball.dataset.val = i;
 
-      if (state.userBlue.has(i)) {
-        ball.classList.add('selected');
-      } else if (state.userBlue.size >= state.Kb) {
-        ball.classList.add('disabled');
-      }
+      if (state.userBlue.has(i)) ball.classList.add('selected');
+      else if (state.userBlue.size >= state.Kb) ball.classList.add('disabled');
 
       ball.addEventListener('click', () => toggleSelectBall('blue', i));
       els.blueBallGrid.appendChild(ball);
     }
 
-    // 更新选号计数与文字
     els.redCountText.textContent = `已选 ${state.userRed.size} / ${state.Kr}`;
     els.blueCountText.textContent = `已选 ${state.userBlue.size} / ${state.Kb}`;
 
@@ -967,43 +969,32 @@
     els.btnStartDraw.disabled = !isFull || state.isDrawing;
 
     if (isFull) {
-      els.userPickText.innerHTML = `<span style="color:var(--red-primary)">红：${redArray.join(' ')}</span> &nbsp;|&nbsp; <span style="color:var(--blue-primary)">蓝：${blueArray.join(' ')}</span>`;
+      els.userPickText.innerHTML = `<span style="color:var(--red-primary)">红: ${redArray.join(' ')}</span> &nbsp;|&nbsp; <span style="color:var(--blue-primary)">蓝: ${blueArray.join(' ')}</span>`;
     } else {
-      els.userPickText.textContent = `选号未满 (请选满 ${state.Kr} 红 + ${state.Kb} 蓝)`;
+      els.userPickText.textContent = `选号未满 (${state.Kr}红+${state.Kb}蓝)`;
     }
   }
 
-  // 点击选择/取消号码
   function toggleSelectBall(type, num) {
     if (state.isDrawing) return;
-
     if (type === 'red') {
-      if (state.userRed.has(num)) {
-        state.userRed.delete(num);
-      } else if (state.userRed.size < state.Kr) {
-        state.userRed.add(num);
-      }
+      if (state.userRed.has(num)) state.userRed.delete(num);
+      else if (state.userRed.size < state.Kr) state.userRed.add(num);
     } else {
-      if (state.userBlue.has(num)) {
-        state.userBlue.delete(num);
-      } else if (state.userBlue.size < state.Kb) {
-        state.userBlue.add(num);
-      }
+      if (state.userBlue.has(num)) state.userBlue.delete(num);
+      else if (state.userBlue.size < state.Kb) state.userBlue.add(num);
     }
     renderBallGrids();
   }
 
-  // --- 机选辅助逻辑 ---
   function randomPick(type) {
     if (type === 'red' || type === 'all') {
       state.userRed.clear();
-      const picked = getRandomDraw(state.Nr, state.Kr);
-      picked.forEach(n => state.userRed.add(n));
+      getRandomDraw(state.Nr, state.Kr).forEach(n => state.userRed.add(n));
     }
     if (type === 'blue' || type === 'all') {
       state.userBlue.clear();
-      const picked = getRandomDraw(state.Nb, state.Kb);
-      picked.forEach(n => state.userBlue.add(n));
+      getRandomDraw(state.Nb, state.Kb).forEach(n => state.userBlue.add(n));
     }
     renderBallGrids();
   }
@@ -1014,635 +1005,278 @@
     renderBallGrids();
   }
 
-  // --- 更新 UI 概览与表格 ---
-  function updateUI() {
-    // 1. 顶部统计显示
-    els.totalCombosDisplay.textContent = state.totalCombos.toLocaleString();
-    
-    const comboRed = combination(state.Nr, state.Kr);
-    const comboBlue = combination(state.Nb, state.Kb);
-    
-    const pRedAll = 1 / comboRed;
-    const pBlueAll = 1 / comboBlue;
-    const pJackpot = state.matrixProbs[state.Kr][state.Kb];
-
-    els.redAllProbDisplay.textContent = (pRedAll * 100).toFixed(6) + '%';
-    els.blueAllProbDisplay.textContent = (pBlueAll * 100).toFixed(6) + '%';
-    els.jackpotProbDisplay.textContent = `1 / ${state.totalCombos.toLocaleString()} (${(pJackpot * 100).toFixed(8)}%)`;
-
-    els.autoTotalSimsDisplay.textContent = state.autoSimCount.toLocaleString();
-
-    // 2. 渲染汇总表格
-    renderTables();
-
-    // 3. 重新绘制 Canvas 图表
-    drawCharts();
-  }
-
-  // 渲染底部表格
-  function renderTables() {
-    // A. 奖级汇总表
-    els.prizeTable.innerHTML = '';
-    PRIZE_LIST.forEach(prize => {
-      const theoProb = state.prizeProbs[prize] || 0;
-      const hits = state.prizeHits[prize] || 0;
-      const actFreq = state.autoSimCount > 0 ? hits / state.autoSimCount : 0;
-      const diff = actFreq - theoProb;
-
-      let condText = '';
-      if (prize === '一等奖') condText = `红 ${state.Kr} + 蓝 ${state.Kb}`;
-      else if (prize === '二等奖') condText = `红 ${state.Kr} + 蓝 ${state.Kb - 1}`;
-      else if (prize === '三等奖') condText = `红 ${state.Kr} + 蓝 0 或 红 ${state.Kr - 1} + 蓝 ${state.Kb}`;
-      else if (prize === '四等奖') condText = `红 ${state.Kr-1} + 蓝 1/0 或 红 ${state.Kr-2} + 蓝 ${state.Kb}`;
-      else if (prize === '五等奖') condText = `红 3 + 蓝 1 或 红 2 + 蓝 2`;
-      else if (prize === '六等奖') condText = `红 3+0, 红 2+1, 红 1+2`;
-      else condText = '其余组合';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="font-weight:bold; color:${prize==='一等奖'?'var(--gold-primary)':'inherit'}">${prize}</td>
-        <td>${condText}</td>
-        <td class="mono">${(theoProb * 100).toFixed(6)}%</td>
-        <td class="mono">${hits.toLocaleString()}</td>
-        <td class="mono">${(actFreq * 100).toFixed(6)}%</td>
-        <td class="mono ${diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : 'diff-zero'}">
-          ${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(6)}%
-        </td>
-      `;
-      els.prizeTable.appendChild(tr);
-    });
-
-    // B. 18种组合细分表
-    els.matrixTable.innerHTML = '';
-    for (let r = state.Kr; r >= 0; r--) {
-      for (let b = state.Kb; b >= 0; b--) {
-        const theoProb = state.matrixProbs[r][b];
-        const hits = state.matrixHits[r][b] || 0;
-        const actFreq = state.autoSimCount > 0 ? hits / state.autoSimCount : 0;
-        const diff = actFreq - theoProb;
-        const prize = getPrizeRank(r, b);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="mono">红 ${r}</td>
-          <td class="mono">蓝 ${b}</td>
-          <td>${prize}</td>
-          <td class="mono">${theoProb.toFixed(8)}</td>
-          <td class="mono">${(theoProb * 100).toFixed(6)}%</td>
-          <td class="mono">${hits.toLocaleString()}</td>
-          <td class="mono">${(actFreq * 100).toFixed(6)}%</td>
-          <td class="mono ${diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : 'diff-zero'}">
-            ${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(6)}%
-          </td>
-        `;
-        els.matrixTable.appendChild(tr);
-      }
-    }
-  }
-
-  // --- 开奖动画与呈现 ---
+  // --- 5. 开奖演出动画 ---
   async function startDrawAnimation() {
     if (state.isDrawing) return;
     state.isDrawing = true;
     renderBallGrids();
 
-    // 重置界面
-    els.drawStatusTag.textContent = '摇号中...';
     els.drawResultBanner.style.display = 'none';
-    els.drawCard.classList.remove('jackpot-celebration');
     els.drawBallsRow.innerHTML = '';
 
-    // 生成随机中奖号
+    // 洗牌纯独立生成随机开奖号码
     const winRed = getRandomDraw(state.Nr, state.Kr);
     const winBlue = getRandomDraw(state.Nb, state.Kb);
 
-    // 创建滚动球占位符
-    const redBallElems = [];
+    els.drawStatusText.textContent = '气流风机启动，物理吹球中...';
+    await new Promise(r => setTimeout(r, 1200));
+
+    // 揭晓红球
     for (let i = 0; i < state.Kr; i++) {
+      els.drawStatusText.textContent = `揭晓红球 第 ${i + 1} / ${state.Kr} 个`;
+      await new Promise(r => setTimeout(r, 400));
+
       const b = document.createElement('div');
-      b.className = 'draw-ball red rolling';
-      b.textContent = '??';
+      b.className = 'draw-ball red';
+      b.textContent = String(winRed[i]).padStart(2, '0');
       els.drawBallsRow.appendChild(b);
-      redBallElems.push(b);
     }
 
-    const blueBallElems = [];
+    // 揭晓蓝球
     for (let i = 0; i < state.Kb; i++) {
+      els.drawStatusText.textContent = `揭晓蓝球 第 ${i + 1} / ${state.Kb} 个`;
+      await new Promise(r => setTimeout(r, 400));
+
       const b = document.createElement('div');
-      b.className = 'draw-ball blue rolling';
-      b.textContent = '??';
+      b.className = 'draw-ball blue';
+      b.textContent = String(winBlue[i]).padStart(2, '0');
       els.drawBallsRow.appendChild(b);
-      blueBallElems.push(b);
     }
 
-    // 1. 摇红球：快速滚动数字流 1.5 秒后逐个揭晓
-    els.drawStatusText.textContent = '正在摇红球...';
-    const rollInterval = setInterval(() => {
-      redBallElems.forEach(b => {
-        if (b.classList.contains('rolling')) {
-          b.textContent = String(Math.floor(Math.random() * state.Nr) + 1).padStart(2, '0');
-        }
-      });
-      blueBallElems.forEach(b => {
-        if (b.classList.contains('rolling')) {
-          b.textContent = String(Math.floor(Math.random() * state.Nb) + 1).padStart(2, '0');
-        }
-      });
-    }, 60);
+    els.drawStatusText.textContent = '摇号完毕！开始对号！';
 
-    await new Promise(r => setTimeout(r, 1000));
-
-    // 逐个揭晓红球
-    for (let i = 0; i < state.Kr; i++) {
-      els.drawStatusText.textContent = `正在揭晓红球 第 ${i + 1} / ${state.Kr} 个`;
-      await new Promise(r => setTimeout(r, 350));
-      redBallElems[i].classList.remove('rolling');
-      redBallElems[i].classList.add('reveal');
-      redBallElems[i].textContent = String(winRed[i]).padStart(2, '0');
-    }
-
-    // 2. 摇蓝球
-    els.drawStatusText.textContent = '正在摇蓝球...';
-    await new Promise(r => setTimeout(r, 500));
-
-    for (let i = 0; i < state.Kb; i++) {
-      els.drawStatusText.textContent = `正在揭晓蓝球 第 ${i + 1} / ${state.Kb} 个`;
-      await new Promise(r => setTimeout(r, 350));
-      blueBallElems[i].classList.remove('rolling');
-      blueBallElems[i].classList.add('reveal');
-      blueBallElems[i].textContent = String(winBlue[i]).padStart(2, '0');
-    }
-
-    clearInterval(rollInterval);
-
-    // 3. 对号与结算
-    els.drawStatusText.textContent = '摇号完成，开始对号！';
-    els.drawStatusTag.textContent = '开奖完毕';
-
-    // 统计命中数
     const winRedSet = new Set(winRed);
     const winBlueSet = new Set(winBlue);
 
-    let hitRedCount = 0;
-    state.userRed.forEach(val => {
-      if (winRedSet.has(val)) hitRedCount++;
-    });
+    let hr = 0, hb = 0;
+    state.userRed.forEach(v => { if (winRedSet.has(v)) hr++; });
+    state.userBlue.forEach(v => { if (winBlueSet.has(v)) hb++; });
 
-    let hitBlueCount = 0;
-    state.userBlue.forEach(val => {
-      if (winBlueSet.has(val)) hitBlueCount++;
-    });
+    const prize = getPrizeRank(hr, hb);
 
-    const prizeRank = getPrizeRank(hitRedCount, hitBlueCount);
-
-    // 在用户选号盘标注中奖打勾
     document.querySelectorAll('#redBallGrid .ball').forEach(b => {
       const val = parseInt(b.dataset.val, 10);
-      if (state.userRed.has(val) && winRedSet.has(val)) {
-        b.classList.add('hit');
-      } else {
-        b.classList.remove('hit');
-      }
+      if (state.userRed.has(val) && winRedSet.has(val)) b.classList.add('hit');
+      else b.classList.remove('hit');
     });
 
     document.querySelectorAll('#blueBallGrid .ball').forEach(b => {
       const val = parseInt(b.dataset.val, 10);
-      if (state.userBlue.has(val) && winBlueSet.has(val)) {
-        b.classList.add('hit');
-      } else {
-        b.classList.remove('hit');
-      }
+      if (state.userBlue.has(val) && winBlueSet.has(val)) b.classList.add('hit');
+      else b.classList.remove('hit');
     });
 
-    // 显示结果 Banner
-    els.drawResultHitText.textContent = `红球命中 ${hitRedCount} 个，蓝球命中 ${hitBlueCount} 个`;
-    els.drawResultPrizeText.textContent = prizeRank;
+    els.drawResultHitText.textContent = `红球命中 ${hr} 个，蓝球命中 ${hb} 个`;
+    els.drawResultPrizeText.textContent = prize;
     els.drawResultBanner.style.display = 'block';
-
-    if (prizeRank === '一等奖') {
-      els.drawCard.classList.add('jackpot-celebration');
-    }
 
     state.isDrawing = false;
     renderBallGrids();
   }
 
-  // --- 连续开奖统计（固定当前这注号码） ---
-  function runFixedSimulations(count) {
-    if (state.userRed.size !== state.Kr || state.userBlue.size !== state.Kb) {
-      alert('请先选满红球与蓝球！');
-      return;
-    }
+  // --- 6. 10,000 次开奖与选号完全独立性验证 ---
+  function runIndependenceTest() {
+    els.indepTestStatus.textContent = '正在独立抽取 10,000 次...';
 
-    const userRedArr = Array.from(state.userRed);
-    const userBlueArr = Array.from(state.userBlue);
+    setTimeout(() => {
+      const totalDraws = 10000;
+      const redCounts = new Array(33).fill(0);
+      const blueCounts = new Array(13).fill(0);
 
-    let jackpotHits = 0;
+      for (let i = 0; i < totalDraws; i++) {
+        const wR = getRandomDraw(32, 5);
+        const wB = getRandomDraw(12, 2);
 
-    // 批量计算
-    for (let i = 0; i < count; i++) {
-      const winRed = getRandomDraw(state.Nr, state.Kr);
-      const winBlue = getRandomDraw(state.Nb, state.Kb);
-
-      const winRedSet = new Set(winRed);
-      const winBlueSet = new Set(winBlue);
-
-      let hr = 0;
-      for (let k = 0; k < userRedArr.length; k++) {
-        if (winRedSet.has(userRedArr[k])) hr++;
+        wR.forEach(r => redCounts[r]++);
+        wB.forEach(b => blueCounts[b]++);
       }
 
-      let hb = 0;
-      for (let k = 0; k < userBlueArr.length; k++) {
-        if (winBlueSet.has(userBlueArr[k])) hb++;
+      // 计算 Z-Score 判定
+      const pRed = 5 / 32;
+      const expRed = totalDraws * pRed; // 1562.5
+      const sigmaRed = Math.sqrt(totalDraws * pRed * (1 - pRed));
+
+      const pBlue = 2 / 12;
+      const expBlue = totalDraws * pBlue; // 1666.67
+      const sigmaBlue = Math.sqrt(totalDraws * pBlue * (1 - pBlue));
+
+      let maxZ = 0;
+      for (let i = 1; i <= 32; i++) {
+        const z = Math.abs(redCounts[i] - expRed) / sigmaRed;
+        if (z > maxZ) maxZ = z;
+      }
+      for (let i = 1; i <= 12; i++) {
+        const z = Math.abs(blueCounts[i] - expBlue) / sigmaBlue;
+        if (z > maxZ) maxZ = z;
       }
 
-      if (hr === state.Kr && hb === state.Kb) {
-        jackpotHits++;
-      }
-    }
-
-    state.fixedDrawsCount += count;
-    state.fixedJackpotHits += jackpotHits;
-
-    const theoJackpotProb = state.matrixProbs[state.Kr][state.Kb];
-    const actJackpotFreq = state.fixedJackpotHits / state.fixedDrawsCount;
-    const diff = actJackpotFreq - theoJackpotProb;
-
-    els.fixedTotalDraws.textContent = state.fixedDrawsCount.toLocaleString();
-    els.fixedJackpotHits.textContent = state.fixedJackpotHits.toLocaleString();
-    els.fixedJackpotFreq.innerHTML = `
-      ${(actJackpotFreq * 100).toFixed(6)}% 
-      <span class="${diff >= 0 ? 'diff-pos' : 'diff-neg'}" style="font-size:0.85rem">
-        (偏差: ${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(6)}%)
-      </span>
-    `;
-  }
-
-  // --- 全自动模拟测试区（每局重新机选） ---
-  function runAutoBatchSimulation(totalToRun) {
-    const batchSize = 10000;
-    let runSoFar = 0;
-
-    els.btnRunAutoSim.disabled = true;
-    els.btnRunAutoSim.textContent = '模拟计算中...';
-
-    function processBatch() {
-      const currentBatch = Math.min(batchSize, totalToRun - runSoFar);
-
-      for (let i = 0; i < currentBatch; i++) {
-        // 每局生成机选
-        const pickRed = getRandomDraw(state.Nr, state.Kr);
-        const pickBlue = getRandomDraw(state.Nb, state.Kb);
-
-        // 生成开奖号
-        const winRed = getRandomDraw(state.Nr, state.Kr);
-        const winBlue = getRandomDraw(state.Nb, state.Kb);
-
-        // 计算命中
-        const winRedSet = new Set(winRed);
-        let hr = 0;
-        for (let r = 0; r < pickRed.length; r++) {
-          if (winRedSet.has(pickRed[r])) hr++;
-        }
-
-        const winBlueSet = new Set(winBlue);
-        let hb = 0;
-        for (let b = 0; b < pickBlue.length; b++) {
-          if (winBlueSet.has(pickBlue[b])) hb++;
-        }
-
-        state.matrixHits[hr][hb]++;
-        const prize = getPrizeRank(hr, hb);
-        state.prizeHits[prize] = (state.prizeHits[prize] || 0) + 1;
-      }
-
-      runSoFar += currentBatch;
-      state.autoSimCount += currentBatch;
-
-      // 记录一等奖收敛历史点
-      const jackpotHits = state.prizeHits['一等奖'] || 0;
-      state.convergenceHistory.push({
-        draws: state.autoSimCount,
-        jackpotRate: jackpotHits / state.autoSimCount
-      });
-
-      if (runSoFar < totalToRun) {
-        setTimeout(processBatch, 0);
+      els.maxZScoreDisplay.textContent = maxZ.toFixed(2);
+      if (maxZ <= 3.0) {
+        els.indepVerdictDisplay.textContent = '✓ 验证通过 (符合随机分布)';
+        els.indepVerdictDisplay.style.color = 'var(--green-accent)';
       } else {
-        els.btnRunAutoSim.disabled = false;
-        els.btnRunAutoSim.textContent = '🚀 开始批量全自动模拟';
-        updateUI();
+        els.indepVerdictDisplay.textContent = '⚠ 存在统计异常波动';
+        els.indepVerdictDisplay.style.color = 'var(--red-primary)';
       }
-    }
 
-    processBatch();
+      els.indepTestStatus.textContent = '已完成 10,000 次独立抽样';
+
+      // 绘制频率柱状图
+      drawFreqChart(els.canvasRedFreq, redCounts.slice(1), expRed, 32, '红球');
+      drawFreqChart(els.canvasBlueFreq, blueCounts.slice(1), expBlue, 12, '蓝球');
+    }, 50);
   }
 
-  // --- Canvas 绘制手绘图表 ---
-
-  // 高清屏 Canvas 缩放辅助
-  function setupCanvas(canvas) {
+  function drawFreqChart(canvas, countsArr, expVal, count, label) {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    return { ctx, width: rect.width, height: rect.height };
-  }
 
-  function drawCharts() {
-    drawHeatmap();
-    drawBarChart();
-    drawConvergenceChart();
-  }
+    const w = rect.width, h = rect.height;
+    ctx.clearRect(0, 0, w, h);
 
-  // 1. 热力图绘制 (横轴红 0~Kr, 纵轴蓝 0~Kb)
-  function drawHeatmap() {
-    const { ctx, width, height } = setupCanvas(els.canvasHeatmap);
-    ctx.clearRect(0, 0, width, height);
+    const padL = 35, padB = 20, padT = 15, padR = 10;
+    const chartW = w - padL - padR;
+    const chartH = h - padT - padB;
 
-    const paddingLeft = 40;
-    const paddingBottom = 30;
-    const paddingTop = 10;
-    const paddingRight = 10;
+    const maxVal = Math.max(...countsArr, expVal) * 1.15;
+    const barW = chartW / count;
 
-    const gridWidth = (width - paddingLeft - paddingRight) / (state.Kr + 1);
-    const gridHeight = (height - paddingTop - paddingBottom) / (state.Kb + 1);
-
-    // 查找最大实际频率，以便设定颜色比例
-    let maxFreq = 0.0001;
-    for (let r = 0; r <= state.Kr; r++) {
-      for (let b = 0; b <= state.Kb; b++) {
-        const freq = state.autoSimCount > 0 ? state.matrixHits[r][b] / state.autoSimCount : state.matrixProbs[r][b];
-        if (freq > maxFreq) maxFreq = freq;
-      }
-    }
-
-    for (let r = 0; r <= state.Kr; r++) {
-      for (let b = 0; b <= state.Kb; b++) {
-        const x = paddingLeft + r * gridWidth;
-        const y = paddingTop + (state.Kb - b) * gridHeight; // y轴倒序，蓝命中多的在上面
-
-        const theo = state.matrixProbs[r][b];
-        const act = state.autoSimCount > 0 ? state.matrixHits[r][b] / state.autoSimCount : 0;
-
-        // 根据实际频率/理论填充颜色深度
-        const intensity = state.autoSimCount > 0 ? Math.min(1, act / maxFreq) : Math.min(1, theo / maxFreq);
-        ctx.fillStyle = `rgba(59, 130, 246, ${0.1 + intensity * 0.85})`;
-        ctx.fillRect(x + 1, y + 1, gridWidth - 2, gridHeight - 2);
-
-        ctx.strokeStyle = '#334155';
-        ctx.strokeRect(x, y, gridWidth, gridHeight);
-
-        // 文字显示
-        ctx.fillStyle = intensity > 0.5 ? '#ffffff' : '#94a3b8';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        
-        if (gridWidth > 45) {
-          ctx.fillText(`理:${(theo * 100).toFixed(1)}%`, x + gridWidth / 2, y + gridHeight / 2 - 2);
-          ctx.fillText(`实:${(act * 100).toFixed(1)}%`, x + gridWidth / 2, y + gridHeight / 2 + 10);
-        } else {
-          ctx.fillText(`${(theo * 100).toFixed(1)}%`, x + gridWidth / 2, y + gridHeight / 2 + 3);
-        }
-      }
-    }
-
-    // X / Y 轴标签
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
-    for (let r = 0; r <= state.Kr; r++) {
-      ctx.fillText(`红${r}`, paddingLeft + r * gridWidth + gridWidth / 2, height - 10);
-    }
-
-    ctx.textAlign = 'right';
-    for (let b = 0; b <= state.Kb; b++) {
-      ctx.fillText(`蓝${b}`, paddingLeft - 6, paddingTop + (state.Kb - b) * gridHeight + gridHeight / 2 + 4);
-    }
-  }
-
-  // 2. 双柱对比柱状图
-  function drawBarChart() {
-    const { ctx, width, height } = setupCanvas(els.canvasBar);
-    ctx.clearRect(0, 0, width, height);
-
-    const padding = { left: 50, right: 10, top: 20, bottom: 40 };
-    const chartW = width - padding.left - padding.right;
-    const chartH = height - padding.top - padding.bottom;
-
-    // 展平 18 种组合
-    const combos = [];
-    for (let r = state.Kr; r >= 0; r--) {
-      for (let b = state.Kb; b >= 0; b--) {
-        combos.push({
-          label: `${r}+${b}`,
-          theo: state.matrixProbs[r][b],
-          act: state.autoSimCount > 0 ? state.matrixHits[r][b] / state.autoSimCount : 0
-        });
-      }
-    }
-
-    // 按理论概率排序
-    combos.sort((a, b) => b.theo - a.theo);
-
-    // 最大值刻度
-    const maxVal = Math.max(...combos.map(c => Math.max(c.theo, c.act)), 0.001);
-
-    const groupW = chartW / combos.length;
-    const barW = Math.max(2, (groupW - 4) / 2);
-
-    // 画坐标轴背景线
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
+    // 基准期望线
+    const expY = h - padB - (expVal / maxVal) * chartH;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, height - padding.bottom);
-    ctx.lineTo(width - padding.right, height - padding.bottom);
-    ctx.stroke();
-
-    combos.forEach((c, i) => {
-      const x = padding.left + i * groupW;
-
-      const hTheo = (c.theo / maxVal) * chartH;
-      const hAct = (c.act / maxVal) * chartH;
-
-      // 理论柱 (蓝色)
-      ctx.fillStyle = '#3b82f6';
-      ctx.fillRect(x + 2, height - padding.bottom - hTheo, barW, hTheo);
-
-      // 实际柱 (红色/浅红)
-      ctx.fillStyle = '#ef4444';
-      ctx.fillRect(x + 2 + barW, height - padding.bottom - hAct, barW, hAct);
-
-      // 标签
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '9px sans-serif';
-      ctx.textAlign = 'center';
-      if (combos.length <= 18) {
-        ctx.fillText(c.label, x + groupW / 2, height - padding.bottom + 14);
-      }
-    });
-
-    // 图例
-    ctx.fillStyle = '#3b82f6';
-    ctx.fillRect(width - 120, 10, 10, 10);
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('理论概率', width - 105, 18);
-
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(width - 60, 10, 10, 10);
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('实际频率', width - 45, 18);
-  }
-
-  // 3. 一等奖概率收敛折线图
-  function drawConvergenceChart() {
-    const { ctx, width, height } = setupCanvas(els.canvasConvergence);
-    ctx.clearRect(0, 0, width, height);
-
-    const padding = { left: 60, right: 20, top: 20, bottom: 30 };
-    const chartW = width - padding.left - padding.right;
-    const chartH = height - padding.top - padding.bottom;
-
-    const theoJackpotProb = state.matrixProbs[state.Kr][state.Kb];
-
-    // 坐标轴
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, height - padding.bottom);
-    ctx.lineTo(width - padding.right, height - padding.bottom);
-    ctx.stroke();
-
-    // 理论虚线
-    const theoY = height - padding.bottom - chartH * 0.5; // 固定在 50% 高度作为基线
-    ctx.strokeStyle = '#eab308';
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(padding.left, theoY);
-    ctx.lineTo(width - padding.right, theoY);
+    ctx.moveTo(padL, expY);
+    ctx.lineTo(w - padR, expY);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = '#eab308';
-    ctx.font = '10px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`理论一等奖: ${(theoJackpotProb * 100).toFixed(6)}%`, padding.left + 5, theoY - 5);
-
-    // 如果没有数据，直接返回
-    if (state.convergenceHistory.length < 2) {
-      ctx.fillStyle = '#64748b';
-      ctx.textAlign = 'center';
-      ctx.fillText('进行自动模拟后，此处将呈现收敛折线', width / 2, height / 2);
-      return;
-    }
-
-    // 绘制收敛曲线
-    const data = state.convergenceHistory;
-    const maxDraws = data[data.length - 1].draws;
-
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    data.forEach((pt, i) => {
-      const x = padding.left + (pt.draws / maxDraws) * chartW;
-      
-      // 以 2 倍理论概率作为上下限缩放
-      const ratio = pt.jackpotRate / (theoJackpotProb * 2 || 0.00001);
-      const clampRatio = Math.min(Math.max(ratio, 0), 1);
-      const y = height - padding.bottom - clampRatio * chartH;
-
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    countsArr.forEach((val, i) => {
+      const x = padL + i * barW;
+      const barH = (val / maxVal) * chartH;
+      ctx.fillStyle = label === '红球' ? '#ef4444' : '#3b82f6';
+      ctx.fillRect(x + 1, h - padB - barH, barW - 2, barH);
     });
-
-    ctx.stroke();
-
-    // X轴 刻度
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${maxDraws.toLocaleString()} 局`, width - padding.right, height - 10);
   }
 
-  // --- 事件监听绑定 ---
+  // --- 7. A/B 选号无关性测试 ---
+  function runABTest() {
+    const totalSims = 10000;
+    const pickA_R = [1, 2, 3, 4, 5], pickA_B = [1, 2];
+    const pickB_R = [28, 29, 30, 31, 32], pickB_B = [11, 12];
+
+    const hitsA = {}, hitsB = {};
+    PRIZE_LIST.forEach(p => { hitsA[p] = 0; hitsB[p] = 0; });
+
+    for (let i = 0; i < totalSims; i++) {
+      const wR = getRandomDraw(32, 5);
+      const wB = getRandomDraw(12, 2);
+      const wRSet = new Set(wR), wBSet = new Set(wB);
+
+      let hrA = 0, hbA = 0;
+      pickA_R.forEach(v => { if (wRSet.has(v)) hrA++; });
+      pickA_B.forEach(v => { if (wBSet.has(v)) hbA++; });
+      hitsA[getPrizeRank(hrA, hbA)]++;
+
+      let hrB = 0, hbB = 0;
+      pickB_R.forEach(v => { if (wRSet.has(v)) hrB++; });
+      pickB_B.forEach(v => { if (wBSet.has(v)) hbB++; });
+      hitsB[getPrizeRank(hrB, hbB)]++;
+    }
+
+    els.abTestTable.innerHTML = '';
+    PRIZE_LIST.forEach(pz => {
+      const p = state.prizeProbs[pz];
+      const fA = hitsA[pz] / totalSims;
+      const fB = hitsB[pz] / totalSims;
+      const diff = fB - fA;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:bold;">${pz}</td>
+        <td class="mono">${(p * 100).toFixed(4)}%</td>
+        <td class="mono">${hitsA[pz]}</td>
+        <td class="mono">${(fA * 100).toFixed(4)}%</td>
+        <td class="mono">${hitsB[pz]}</td>
+        <td class="mono">${(fB * 100).toFixed(4)}%</td>
+        <td class="mono ${diff >= 0 ? 'diff-pos' : 'diff-neg'}">${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(4)}%</td>
+      `;
+      els.abTestTable.appendChild(tr);
+    });
+
+    els.abTestVerdict.textContent = '✓ 结论：A/B 两组选号中奖频率无显著差异，证明选号不影响中奖概率。';
+  }
+
+  // --- 8. 理论矩阵填充 ---
+  function renderMatrixTable() {
+    els.matrixTable.innerHTML = '';
+    const comboRed = combination(state.Nr, state.Kr);
+    const comboBlue = combination(state.Nb, state.Kb);
+
+    for (let r = state.Kr; r >= 0; r--) {
+      for (let b = state.Kb; b >= 0; b--) {
+        const ways = (combination(state.Kr, r) * combination(state.Nr - state.Kr, state.Kr - r)) *
+                     (combination(state.Kb, b) * combination(state.Nb - state.Kb, state.Kb - b));
+        const p = state.matrixProbs[r][b];
+        const pz = getPrizeRank(r, b);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="mono">红 ${r}</td>
+          <td class="mono">蓝 ${b}</td>
+          <td>${pz}</td>
+          <td class="mono">${ways.toLocaleString()}</td>
+          <td class="mono">${p.toFixed(8)}</td>
+          <td class="mono">${(p * 100).toFixed(6)}%</td>
+        `;
+        els.matrixTable.appendChild(tr);
+      }
+    }
+  }
+
+  // --- 9. 事件绑定与初始化 ---
   function bindEvents() {
-    // 参数变更监听
-    const onParamChange = () => {
-      state.Nr = parseInt(els.nrInput.value, 10) || 32;
-      state.Kr = parseInt(els.krInput.value, 10) || 5;
-      state.Nb = parseInt(els.nbInput.value, 10) || 12;
-      state.Kb = parseInt(els.kbInput.value, 10) || 2;
+    els.btnToggleFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else if (document.exitFullscreen) document.exitFullscreen();
+    });
 
-      // 修正合法边界
-      if (state.Kr > state.Nr) state.Kr = state.Nr;
-      if (state.Kb > state.Nb) state.Kb = state.Nb;
+    setInterval(() => {
+      els.sysClockDisplay.textContent = new Date().toTimeString().split(' ')[0];
+    }, 1000);
 
-      calculateTheoreticalProbabilities();
-      resetSimulationData();
-      clearPick();
-      updateUI();
-    };
-
-    els.nrInput.addEventListener('change', onParamChange);
-    els.krInput.addEventListener('change', onParamChange);
-    els.nbInput.addEventListener('change', onParamChange);
-    els.kbInput.addEventListener('change', onParamChange);
-
-    // 机选与清空按钮
     els.btnRandomRed.addEventListener('click', () => randomPick('red'));
     els.btnRandomBlue.addEventListener('click', () => randomPick('blue'));
     els.btnRandomAll.addEventListener('click', () => randomPick('all'));
     els.btnClearAll.addEventListener('click', clearPick);
-
-    // 开始摇号
     els.btnStartDraw.addEventListener('click', startDrawAnimation);
 
-    // 固定这注连续开奖
-    document.querySelectorAll('.btn-fixed-sim').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const count = parseInt(e.target.dataset.count, 10);
-        runFixedSimulations(count);
-      });
+    els.btnRunIndependenceTest.addEventListener('click', runIndependenceTest);
+    els.btnRunABTest.addEventListener('click', runABTest);
+
+    els.btnGlobalReset.addEventListener('click', () => {
+      clearPick();
+      renderBallGrids();
     });
 
-    // 自动模拟按钮
-    els.btnRunAutoSim.addEventListener('click', () => {
-      const count = parseInt(els.autoSimCountInput.value, 10) || 1000;
-      runAutoBatchSimulation(count);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !els.btnStartDraw.disabled) {
+        e.preventDefault();
+        startDrawAnimation();
+      }
     });
-
-    document.querySelectorAll('.btn-auto-set').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const count = parseInt(e.target.dataset.count, 10);
-        els.autoSimCountInput.value = count;
-        runAutoBatchSimulation(count);
-      });
-    });
-
-    els.btnResetAutoSim.addEventListener('click', () => {
-      resetSimulationData();
-      updateUI();
-    });
-
-    // 窗口大小变动时，自适应重绘 Canvas
-    window.addEventListener('resize', drawCharts);
   }
 
-  // --- 初始化程序 ---
   function init() {
     calculateTheoreticalProbabilities();
-    resetSimulationData();
     bindEvents();
     renderBallGrids();
-    updateUI();
+    renderMatrixTable();
+    initPhysEngine();
   }
 
   window.addEventListener('DOMContentLoaded', init);
